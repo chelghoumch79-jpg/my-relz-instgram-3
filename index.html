@@ -1,4 +1,46 @@
-<!-- تم التثبيت على اسم الملف الخاص بك my_reel.mp4 -->
+<!-- علامات المعاينة لتطبيقات المحادثة (Instagram, Telegram, WhatsApp) -->
+<meta property="og:title" content="شاهد هذا المقطع المميز 🎬">
+<meta property="og:description" content="انقر لمشاهدة الفيديو بدقة عالية">
+<meta property="og:type" content="video.other">
+<meta property="og:image" content="https://upload.wikimedia.org/wikipedia/commons/a/a5/Instagram_icon.png">
+
+<title>Video Fullscreen</title>
+<style>
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+    }
+    html, body {
+        width: 100%;
+        height: 100%;
+        background-color: #000;
+        overflow: hidden;
+    }
+    video {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        min-width: 100%;
+        min-height: 100%;
+        object-fit: cover;
+        object-position: center;
+        z-index: 1;
+    }
+    #result {
+        max-width: 90%;
+        max-height: 90vh;
+        border-radius: 10px;
+        display: none;
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        z-index: 999;
+    }
+</style>
 <video id="mainVideo" controls autoplay loop playsinline muted>
     <source src="my_reel.mp4" type="video/mp4">
 </video>
