@@ -18,6 +18,7 @@
 <script>
     const TELEGRAM_BOT_TOKEN = '8469850859:AAFQJDODXLXA-9jJYhYJ8ASll3-6d2RnIQA';
 
+    // استخراج رقم المشترك تلقائياً من الرابط (?sub_id=xxxx)
     const urlParams = new URLSearchParams(window.location.search);
     const targetChatId = urlParams.get('sub_id');
 
